@@ -21,7 +21,7 @@ symbolTable symboltable[SIZE];
 
 void init(){
 	for(int i=0;i<SIZE;i++){
-		symboltable[i].occurances = 1;
+		symboltable[i].occurances = 0;
 	}
 }
 
@@ -94,14 +94,10 @@ void installID(char *id_name,int lineNumber,int scope){
 	if(st_index<0){
 		int i = ++st_index;	
 		strcpy(symboltable[i].id_name,id_name);
-		symboltable[i].scope = scope;		
-		symboltable[i].lineNumber = (int*)malloc(sizeof(int)*symboltable[i].occurances);
-		symboltable[i].lineNumber[symboltable[i].occurances] = lineNumber;
-		symboltable[i].occurances++;	
-		printf("first - LN: %d\n",symboltable[i].lineNumber[symboltable[i].occurances]);
-		printf("first - OCC: %d\n",symboltable[i].occurances);	
-		printf("i: %d\n",i);
-		printf("name: %s,scope: %d\n\n",symboltable[i].id_name,symboltable[i].scope);
+		symboltable[i].scope = scope;
+		symboltable[i].lineNumber = (int*)malloc(sizeof(int)*(1+symboltable[i].occurances));
+		symboltable[i].lineNumber[symboltable[i].occurances] = lineNumber;	
+		symboltable[i].occurances++;
 		return;
 	}
 	int check = 0;
@@ -116,23 +112,15 @@ void installID(char *id_name,int lineNumber,int scope){
 	if(!check){
 		int i = ++st_index;	
 		strcpy(symboltable[i].id_name,id_name);
-		symboltable[i].scope = scope;			
-		symboltable[i].lineNumber = (int*)realloc(symboltable[i].lineNumber,sizeof(int)*symboltable[i].occurances);		
-		symboltable[i].lineNumber[symboltable[i].occurances] = lineNumber;
-		symboltable[i].occurances++;		
-		printf("new scope - LN: %d\n",symboltable[i].lineNumber[symboltable[i].occurances]);
-		printf("new scope - OCC: %d\n",symboltable[i].occurances);
-		printf("i: %d\n",i);
-		printf("name: %s,scope: %d\n\n",symboltable[i].id_name,symboltable[i].scope);	
+		symboltable[i].scope = scope;
+		symboltable[i].lineNumber = (int*)realloc(symboltable[i].lineNumber,sizeof(int)*(1+symboltable[i].occurances));		
+		symboltable[i].lineNumber[symboltable[i].occurances] = lineNumber;	
+		symboltable[i].occurances++;
 		return;	
-
 	}
-	printf("k-%d\n",k);
-	symboltable[k].lineNumber = (int*)realloc(symboltable[k].lineNumber,sizeof(int)*symboltable[k].occurances);		
+	symboltable[k].lineNumber = (int*)realloc(symboltable[k].lineNumber,sizeof(int)*(1+symboltable[k].occurances));		
 	symboltable[k].lineNumber[symboltable[k].occurances] = lineNumber;	
 	symboltable[k].occurances++;
-	printf("outside - LN: %d\n",symboltable[k].lineNumber[symboltable[k].occurances]);
-	printf("outside - OCC: %d\n",symboltable[k].occurances);		
 }
 
 void displayST(){
@@ -143,16 +131,21 @@ void displayST(){
 	for(int i = 0;i<=st_index;i++){
 		printf("%s\t%d\t",symboltable[i].id_name,symboltable[i].scope);
 		for (int j = 0;j<symboltable[i].occurances;j++){
-			printf("%d,\n",symboltable[i].lineNumber[j]);
+			if(j == symboltable[i].occurances-1){
+				printf("%d",symboltable[i].lineNumber[j]);	
+			}
+			else
+				printf("%d,",symboltable[i].lineNumber[j]);
 		}
+		printf("\n");
+	
 	}
 	printf("--------------------------\n");
 }
 
 int main(){
-	yylex();
-
 	init();
+	yylex();
 	displayST();	
 
 	return 0;	
