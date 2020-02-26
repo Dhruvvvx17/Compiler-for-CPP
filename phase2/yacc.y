@@ -229,14 +229,9 @@ arithmetic_expr : arithmetic_expr '+' arithmetic_expr
 		| '(' arithmetic_expr')'			
 		| '-' arithmetic_expr %prec UMINUS
 	        | identifier			{$$ = $1->data_type;}
-    		| constant			{$$ = $1->data_type;}
 	        ;
 
-constant : DEC_CONSTANT 		{ $$ = $1;}
-    	 | HEX_CONSTANT			{ $$ = $1;}
-	 | CHAR_CONSTANT		{ $$ = $1;}
-	 | FLOAT_CONSTANT		{ $$ = $1;}
-    	 ;
+
 
 %%
 
