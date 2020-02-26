@@ -3,7 +3,8 @@
 	#include <stdio.h>
 	int yyerror(char *msg);
 
-	#include "symboltable.h"
+	#include "symbolTable.h"
+	#include "y.tab.h"
 	#include "lex.yy.c"
 
 	#define SYMBOL_TABLE symbolTableCollection[currentScope].symbolTable
@@ -228,7 +229,7 @@ arithmetic_expr : arithmetic_expr '+' arithmetic_expr
 		| arithmetic_expr '%' arithmetic_expr										
 		| '(' arithmetic_expr')'			
 		| '-' arithmetic_expr %prec UMINUS
-	        | identifier			{$$ = $1->data_type;}
+	        | identifier			{$$ = $1->dataType;}
 	        ;
 
 
@@ -241,7 +242,7 @@ int main(int argc, char *argv[]) {
 		symbolTableCollection[i].parent = -1;
 	 }
 
-	symbolTableCollection[0].symbol_table = createTable();
+	symbolTableCollection[0].symbolTable = createTable();
 	yyin = fopen(argv[1], "r");
 
 	if(!yyparse()){

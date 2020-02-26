@@ -36,8 +36,7 @@ hex [0-9a-f]
 "if"                              {return IF;}
 "else"                            {return ELSE;}
 "return"                          {return RETURN;}
-"cin"				  {return CIN;}
-"cout"				  {return COUT;}
+
 
 {identifier}                      {return  IDENTIFIER;}
 {ws}                              ;
@@ -46,10 +45,10 @@ hex [0-9a-f]
 [+\-]?{digit}+[lLuU]?             {return  DEC_CONSTANT;}
 [+\-]?{digit}*\.{digit}+          {return FLOAT_CONSTANT;}
 
-"/*"                              {cmnt_strt = yylineno; BEGIN CMNT;}
+"/*"                             {cmnt_strt = yylineno; BEGIN CMNT;}
 <CMNT>.|{ws}                      ;
 <CMNT>\n                          {yylineno++;}
-<CMNT>"*/"                        {BEGIN INITIAL;}
+<CMNT>"*/"                         {BEGIN INITIAL;}
 <CMNT>"/*"                        {printf("Line %3d: Nested comments are not valid!\n",yylineno);}
 <CMNT><<EOF>>                     {printf("Line %3d: Unterminated comment\n", cmnt_strt); yyterminate();}
 
@@ -63,9 +62,9 @@ hex [0-9a-f]
                                     }
                                   }
 
-\"[^\"\n]*$                       {printf("Line %3d: Unterminated string %s\n",yylineno,yytext);}
-{digit}+({letter}|_)+	          {printf("Line %3d: Illegal identifier name %s\n",yylineno,yytext);}
-\n                                {yylineno++;}
+\"[^\"\n]*$                        {printf("Line %3d: Unterminated string %s\n",yylineno,yytext);}
+{digit}+({letter}|_)+	              {printf("Line %3d: Illegal identifier name %s\n",yylineno,yytext);}
+\n                               {yylineno++;}
 
 "--"			 	 	  {return DECREMENT;}
 "++"			  		  {return INCREMENT;}

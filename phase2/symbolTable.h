@@ -15,7 +15,7 @@ typedef struct symbolTableEntry{
 	
 	char *lexeme;
 	double value;
-	int data_type;
+	int dataType;
 	struct symbolTableEntry* successor;
 
 } symbolTableEntry;
@@ -25,7 +25,7 @@ typedef struct symbolTableEntry{
 typedef struct symbolTableCollection{
 
 	symbolTableEntry **symbolTable;
-	int parentScope;
+	int parent;
 
 } symbolTable_Collection;
 
@@ -39,7 +39,7 @@ symbolTableEntry **createTable() {
 
 	// create pointer to pointer to symbol table.
 	symbolTableEntry **symbolTable_ptr = NULL;
-	symbolTable_ptr = malloc(sizeof(symbolTableEntry*) * SIZE);
+	symbolTable_ptr = (symbolTableEntry**)malloc(sizeof(symbolTableEntry*) * SIZE);
 	
 	for(int i=0;i<SIZE;i++){
 		symbolTable_ptr[i] = NULL;
@@ -52,14 +52,14 @@ int createNewScope(){
 	
 	tableIndex++;
 	symbolTableCollection[tableIndex].symbolTable = createTable();
-	symbolTableCollection[tableIndex].parent = current_scope;
+	symbolTableCollection[tableIndex].parent = currentScope;
 
 	return tableIndex;
 }
 
 // exit from current scope when code falls out of a scope.
 int exitScope(){
-	return symbolTableCollection[current_scope].parent;
+	return symbolTableCollection[currentScope].parent;
 }
 
 // create an entry for a token (identifier). Called when Inserting a new token.
@@ -67,7 +67,7 @@ symbolTableEntry *createEntry(char *lexeme, int value, int dataType){
 
 	// allocate space for new entry.
 	symbolTableEntry *newEntry;
-	newEntry = malloc(sizeof(symbolTableEntry))
+	newEntry = (symbolTableEntry*)malloc(sizeof(symbolTableEntry));
 	
 	// insert values in entry fields.
 	newEntry->lexeme = strdup(lexeme);
