@@ -36,8 +36,8 @@ hex [0-9a-f]
 "if"                              {return IF;}
 "else"                            {return ELSE;}
 "return"                          {return RETURN;}
-"cin"				  			  {return CIN;}
-"cout"				  			  {return COUT;}
+"cin"				  {return CIN;}
+"cout"				  {return COUT;}
 
 {identifier}                      {return  IDENTIFIER;}
 {ws}                              ;

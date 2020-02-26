@@ -144,4 +144,3 @@ symbolTableEntry *insertEntry(symbolTableEntry **symbolTable_ptr, char *lexeme, 
 
 	return head;
 }
-
