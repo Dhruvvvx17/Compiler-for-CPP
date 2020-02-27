@@ -32,14 +32,14 @@ typedef struct symbolTableCollection{
 // extern - so that it can be shared between lex and yacc.
 // this is creating an array of pointer to pointer to symbolTable of size 10.
 // hence we are limiting to a scope depth of 10 for the input program.
-extern symbolTable_Collection symbolTableCollection[SCOPE_RANGE];
+symbolTable_Collection symbolTableCollection[SCOPE_RANGE];
 
 // create a symbol table
-symbolTableEntry **createTable() {
+symbolTableEntry *createTable() {
 
 	// create pointer to pointer to symbol table.
-	symbolTableEntry **symbolTable_ptr = NULL;
-	symbolTable_ptr = (symbolTableEntry**)malloc(sizeof(symbolTableEntry*) * SIZE);
+	symbolTableEntry *symbolTable_ptr = NULL;
+	symbolTable_ptr = (symbolTableEntry*)malloc(sizeof(symbolTableEntry) * SIZE);
 	
 	for(int i=0;i<SIZE;i++){
 		symbolTable_ptr[i] = NULL;

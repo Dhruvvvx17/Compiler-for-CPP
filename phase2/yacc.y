@@ -1,34 +1,34 @@
 %{
 	#include <stdlib.h>
 	#include <stdio.h>
-	int yyerror(char *msg);
-
 	#include "symbolTable.h"
-	#include "y.tab.h"
+	// #include "y.tab.h"
 	#include "lex.yy.c"
-
+	// extern int currentScope;
+	double Evaluate (double lhs_value,int assign_type,double rhs_value);
+    // currentScope = 0;
 	#define SYMBOL_TABLE symbolTableCollection[currentScope].symbolTable
-
+	
 	symbolTable_Collection symbolTableCollection[SCOPE_RANGE];
+
+	int yyerror(char *msg);
 
 	int current_dtype;
 	int p = 0;
-	int is_loop = 0;
-	int is_declaration = 0;
-	int rhs = 1;
 
 %}
 
 %union
 {
-	int data_type;
+	double dval;
 	symbolTableEntry* entry;
+	int ival;
 }
 
 %token <entry> IDENTIFIER
 
  /* Constants */
-%token DEC_CONSTANT HEX_CONSTANT CHAR_CONSTANT FLOAT_CONSTANT
+%token <dval> DEC_CONSTANT HEX_CONSTANT FLOAT_CONSTANT
 %token STRING
 
  /* Logical and Relational operators */
@@ -36,6 +36,7 @@
 
  /* Short hand assignment operators */
 %token MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN SUB_ASSIGN
+%token LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 %token INCREMENT DECREMENT
 
  /* Data types */
@@ -43,15 +44,21 @@
 
  /* Keywords */
 %token IF FOR WHILE CONTINUE BREAK RETURN
+%token CIN COUT INPUT OUTPUT
 
-%type <entry> identifier
+//%type <entry> identifier
 //%type <entry> array_index
 
-%type <data_type> sub_expr
-%type <data_type> unary_expr
-%type <data_type> arithmetic_expr
-%type <data_type> assignment_expr
-//%type <data_type> lhs
+%type <dval> expression
+%type <dval> sub_expr
+%type <dval> constant
+%type <dval> unary_expr
+%type <dval> arithmetic_expr
+%type <dval> assignment_expr
+%type <entry> lhs
+%type <ival> assign_op
+
+%start program
 
 %left ','
 %right '='
@@ -65,184 +72,244 @@
 
 
 %nonassoc UMINUS
-%nonassoc LOWER_THAN_ELSE
+%nonassoc ELSEIF
 %nonassoc ELSE
 
 
 %%
 
 /* Program is made up of multiple builder blocks. */
-program : program builder
-	| builder
-	;
 
-/* Each builder block is either a function or a declaration */
-builder : declaration
-	;
+program: program builder
+	 |builder;
 
+ /* Each builder block is either a function or a declaration */
+builder: function|
+       declaration;
 
-/* Now we will define a grammar for how types can be specified */
-type : data_type pointer
-     | data_type
-     ;
+ /* This is how a function looks like */
+function: type IDENTIFIER '(' argument_list ')' compound_stmt;
 
-pointer : '*' pointer
-    	| '*'
-        ;
+ /* Now we will define a grammar for how types can be specified */
 
-data_type : sign_specifier type_specifier
-    	  | type_specifier
-    	  ;
+type: data_type pointer
+    |data_type
+    |error;
 
-sign_specifier : SIGNED
-    	       | UNSIGNED
-    	       ;
+pointer: '*' pointer
+    |'*'
+    ;
 
-type_specifier : INT                    {current_dtype = INT;}
-	       |SHORT INT               {current_dtype = SHORT;}
-	       |SHORT                   {current_dtype = SHORT;}
-	       |LONG                    {current_dtype = LONG;}
-	       |LONG INT                {current_dtype = LONG;}
-    	       |LONG_LONG               {current_dtype = LONG_LONG;}
-    	       |LONG_LONG INT           {current_dtype = LONG_LONG;}
-	       |CHAR 			{current_dtype = CHAR;}
-	       |FLOAT 			{current_dtype = FLOAT;}
-	       |VOID			{current_dtype = VOID;}
-    	       ;
+data_type: sign_specifier type_specifier
+    |type_specifier
+    ;
 
+sign_specifier: SIGNED
+    |UNSIGNED
+    ;
 
-// statements throughout the code (single or compounds)
-statements : statements stmt
-	   |
-	   ;
+type_specifier: INT                    {current_dtype = INT;}
+    |SHORT INT                         {current_dtype = SHORT;}
+    |SHORT                             {current_dtype = SHORT;}
+    |LONG                              {current_dtype = LONG;}
+    |LONG INT                          {current_dtype = LONG;}
+    |LONG_LONG                         {current_dtype = LONG_LONG;}
+    |LONG_LONG INT                     {current_dtype = LONG_LONG;}
+    |FLOAT				{current_dtype= FLOAT;}
+    ;
+
+ /* grammar rules for argument list */
+ /* argument list can be empty */
+argument_list: arguments
+    |
+    ;
+ /* arguments are comma separated TYPE ID pairs */
+arguments: arguments ',' arg
+    |arg
+    ;
+
+ /* Each arg is a TYPE ID pair */
+arg: type IDENTIFIER
+   ;
 
  /* Generic statement. Can be compound or a single statement */
-stmt : compound_stmt
-     | single_stmt
-     ;
+stmt: compound_stmt
+    |single_stmt
+    ;
 
  /* The function body is covered in braces and has multiple statements. */
-compound_stmt : '{' 	{ if(!p)currentScope = createNewScope();
-				else p = 0;
-			}
-		statements
-		'}' 	{currentScope = exitScope();}
-    	      ;
+compound_stmt: '{'	{ currentScope = createNewScope(); } 
+			statements 
+			  '}'	{currentScope = exitScope();}
+    ;
 
-
+statements: statements stmt
+    |
+    ;
 
  /* Grammar for what constitutes every individual statement */
-single_stmt : if_block
-    	    | for_block
-	    | while_block
-	    | declaration
-	    | CONTINUE ';'		{	if(!is_loop) {yyerror("Illegal use of continue");}	}
-	    | BREAK ';'          	{	if(!is_loop) {yyerror("Illegal use of break");}		}
-    	    ;
+single_stmt: if_block
+    |while_block
+    |for_block
+    |declaration
+    |function_call ';'
+	|RETURN ';'
+	|CONTINUE ';'
+	|BREAK ';'
+	|RETURN sub_expr ';'
+	|IO 
+    ;
 
-for_block : FOR '(' expression_stmt  expression_stmt ')' 	{ is_loop = 1; } stmt {is_loop = 0;}
-    	  | FOR '(' expression_stmt expression_stmt expression ')' {is_loop = 1;} stmt {is_loop = 0;}
-    	  ;
+IO: 	 CIN Instream ';'
+	|COUT Outstream ';'
+	;
 
-if_block : IF '(' expression ')' stmt 			%prec LOWER_THAN_ELSE
-	 | IF '(' expression ')' stmt ELSE stmt
-    	 ;
-
-while_block : WHILE '(' expression ')' {is_loop = 1;} stmt {is_loop = 0;}
-	    ;
-
-declaration : type declaration_list ';'	{ is_declaration = 0; }
-	    | declaration_list ';'
-	    | unary_expr ';'
-	    ;
-
-declaration_list : declaration_list ',' sub_decl
-		 | sub_decl
-    		 ;
-
-sub_decl : assignment_expr
-    	 | identifier
-    	 ;			;
-
-/* This is because we can have empty expession statements inside for loops */
-expression_stmt : expression ';'
-    	        | ';'
- 		;
-
-expression : expression ',' sub_expr
-    	   | sub_expr
-	   ;				
-
-sub_expr : sub_expr '>' sub_expr		{ $$ = $1;}
-	 | sub_expr '<' sub_expr		{ $$ = $1;}
-	 | sub_expr EQ sub_expr		        { $$ = $1;}
-	 | sub_expr NOT_EQ sub_expr   	        { $$ = $1;}
-	 | sub_expr LS_EQ sub_expr		{ $$ = $1;}
-	 | sub_expr GR_EQ sub_expr		{ $$ = $1;}
-	 | sub_expr LOGICAL_AND sub_expr	{ $$ = $1;}
-	 | sub_expr LOGICAL_OR sub_expr	        { $$ = $1;}    		    
-	 | '!'sub_expr				{ $$ = $2;}
-	 | arithmetic_expr			{ $$ = $1;}          
-	 | assignment_expr			{ $$ = $1;}
-	 | unary_expr				{ $$ = $1;}
-         ;
-
-
-assignment_expr : lhs assign_op  arithmetic_expr		{ rhs=0; }
-		| lhs assign_op  unary_expr                     { rhs=0; }
-		| unary_expr assign_op  unary_expr		{ rhs=0; }
-    		;
-
-unary_expr : identifier INCREMENT	
-	   | identifier DECREMENT	
-	   | DECREMENT identifier	
-	   | INCREMENT identifier
+Instream:   INPUT IDENTIFIER Instream
+	   |INPUT IDENTIFIER
 	   ;
 
-lhs : identifier
+Outstream:   OUTPUT IDENTIFIER Outstream
+	    |OUTPUT IDENTIFIER
+	    |OUTPUT STRING Outstream
+	    |OUTPUT STRING
+	    ;
+
+if_block:	IF '(' expression ')' stmt %prec ELSEIF
+		|IF '(' expression ')' stmt ELSE stmt
+		 ;
+
+for_block:FOR '(' expression_stmt  expression_stmt ')' stmt
+    |FOR '(' expression_stmt expression_stmt expression ')' stmt
     ;
 
-identifier : IDENTIFIER    {	if(is_declaration && !rhs) {
-                                	$1 = insertEntry(SYMBOL_TABLE,yytext,INT_MAX,current_dtype);
-                                        if($1 == NULL) yyerror("Redeclaration of variable");
-                                }
-                                else {
-                                        $1 = searchAcrossTables(yytext);
-	                                if($1 == NULL) yyerror("Variable not declared");
-                                }
-	                        $$ = $1;
-                            }
-    	  ;
 
-assign_op : '=' {rhs=1;}
-    |ADD_ASSIGN {rhs=1;} 
-    |SUB_ASSIGN {rhs=1;}
-    |MUL_ASSIGN {rhs=1;}
-    |DIV_ASSIGN {rhs=1;}
-    |MOD_ASSIGN {rhs=1;}
+while_block: WHILE '(' expression	')' stmt
+		;
+
+declaration:		type declaration_list ';'
+			 |declaration_list ';'
+			 | unary_expr ';'
+			 | error ';'
+			 ;
+
+declaration_list: declaration_list ',' sub_decl
+		|sub_decl;
+
+sub_decl: assignment_expr
+    |IDENTIFIER                     {$1 -> dataType = current_dtype;}
+    |array_index
     ;
 
-arithmetic_expr : arithmetic_expr '+' arithmetic_expr		
-    		| arithmetic_expr '-' arithmetic_expr		
-    		| arithmetic_expr '*' arithmetic_expr										
-    		| arithmetic_expr '/' arithmetic_expr										
-		| arithmetic_expr '%' arithmetic_expr										
-		| '(' arithmetic_expr')'			
-		| '-' arithmetic_expr %prec UMINUS
-	        | identifier			{$$ = $1->dataType;}
-	        ;
 
+expression_stmt:expression ';'
+    |';'
+    ;
+
+expression:
+    expression ',' sub_expr								{$$ = $1,$3;}
+    |sub_expr		                                    {$$ = $1;}	
+    ;
+
+sub_expr:
+    sub_expr '>' sub_expr						{$$ = ($1 > $3);}
+    |sub_expr '<' sub_expr						{$$ = ($1 < $3);}
+    |sub_expr EQ sub_expr						{$$ = ($1 == $3);}
+    |sub_expr NOT_EQ sub_expr                   {$$ = ($1 != $3);}
+    |sub_expr LS_EQ sub_expr                    {$$ = ($1 <= $3);}
+    |sub_expr GR_EQ sub_expr                    {$$ = ($1 >= $3);}
+	|sub_expr LOGICAL_AND sub_expr              {$$ = ($1 && $3);}
+	|sub_expr LOGICAL_OR sub_expr               {$$ = ($1 || $3);}
+	|'!' sub_expr                               {$$ = (!$2);}
+	|arithmetic_expr							{$$ = $1;}
+    |assignment_expr                            {$$ = $1;}
+	|unary_expr                                 {$$ = $1;}
+	;
+   
+
+assignment_expr: lhs assign_op arithmetic_expr     {$$ = $1->value = Evaluate($1->value,$2,$3);}
+    |lhs assign_op array_index                     {$$ = 0;}
+    |lhs assign_op function_call                   {$$ = 0;}
+	|lhs assign_op unary_expr                      {$$ = $1->value = Evaluate($1->value,$2,$3);}
+	|unary_expr assign_op unary_expr               {$$ = 0;}
+    ;
+
+unary_expr:	lhs INCREMENT                          {$$ = $1->value = ($1->value)++;}
+	|lhs DECREMENT                                 {$$ = $1->value = ($1->value)--;}
+	|DECREMENT lhs                                 {$$ = $2->value = --($2->value);}
+	|INCREMENT lhs                                 {$$ = $2->value = ++($2->value);}
+        ;
+
+lhs: IDENTIFIER                                     {$$ = $1; if(! $1->dataType) $1->dataType = current_dtype;}
+   
+    ;
+
+assign_op: '='                                      {$$ = '=';}
+    |ADD_ASSIGN                                    {$$ = ADD_ASSIGN;}
+    |SUB_ASSIGN                                    {$$ = SUB_ASSIGN;}
+    |MUL_ASSIGN                                    {$$ = MUL_ASSIGN;}
+    |DIV_ASSIGN                                    {$$ = DIV_ASSIGN;}
+    |MOD_ASSIGN                                    {$$ = MOD_ASSIGN;}
+    ;
+
+arithmetic_expr: arithmetic_expr '+' arithmetic_expr    {$$ = $1 + $3;}
+    |arithmetic_expr '-' arithmetic_expr                {$$ = $1 - $3;}
+    |arithmetic_expr '*' arithmetic_expr                {$$ = $1 * $3;}
+    |arithmetic_expr '/' arithmetic_expr                {$$ = ($3 == 0) ? yyerror("Divide by 0!") : ($1 / $3);}
+	|arithmetic_expr '%' arithmetic_expr                {$$ = (int)$1 % (int)$3;}
+	|'(' arithmetic_expr ')'                            {$$ = $2;}
+    |'-' arithmetic_expr %prec UMINUS                   {$$ = -$2;}
+    |IDENTIFIER                                         {$$ = $1 -> value;}
+    |constant                                           {$$ = $1;}
+    ;
+
+constant: DEC_CONSTANT                                  {$$ = $1;}
+    |HEX_CONSTANT                                       {$$ = $1;}
+    |FLOAT_CONSTANT					{$$ = $1;}
+    ;
+
+array_index: IDENTIFIER '[' sub_expr ']'
+	    ;
+
+function_call: IDENTIFIER '(' parameter_list ')'
+             |IDENTIFIER '(' ')'
+             ;
+
+parameter_list:
+              parameter_list ','  parameter
+              |parameter
+              ;
+
+parameter: sub_expr
+	   |STRING
+
+        ;
 
 
 %%
 
-int main(int argc, char *argv[]) {
-	for(int i=0; i<SCOPE_RANGE;i++){
-		symbolTableCollection[i].symbolTable = NULL;
-		symbolTableCollection[i].parent = -1;
-	 }
+double Evaluate (double lhs_value,int assign_type,double rhs_value)
+{
+	switch(assign_type)
+	{
+		case '=': return rhs_value;
+		case ADD_ASSIGN: return (lhs_value + rhs_value);
+		case SUB_ASSIGN: return (lhs_value - rhs_value);
+		case MUL_ASSIGN: return (lhs_value * rhs_value);
+		case DIV_ASSIGN: return (lhs_value / rhs_value);
+		case MOD_ASSIGN: return ((int)lhs_value % (int)rhs_value);
+	}
+}
 
-	symbolTableCollection[0].symbolTable = createTable();
+int main(int argc, char *argv[]) {
+
+
+	// symbolTableCollection[0].symbolTable = createTable();
+
+	for(int i=0; i<SCOPE_RANGE;i++){
+		symbolTableCollection[i].symbolTable = createTable();
+		symbolTableCollection[i].parent = -1;
+	}
+
 	yyin = fopen(argv[1], "r");
 
 	if(!yyparse()){

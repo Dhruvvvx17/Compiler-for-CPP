@@ -52,93 +52,110 @@ extern int yydebug;
     IDENTIFIER = 258,
     DEC_CONSTANT = 259,
     HEX_CONSTANT = 260,
-    CHAR_CONSTANT = 261,
-    FLOAT_CONSTANT = 262,
-    STRING = 263,
-    LOGICAL_AND = 264,
-    LOGICAL_OR = 265,
-    LS_EQ = 266,
-    GR_EQ = 267,
-    EQ = 268,
-    NOT_EQ = 269,
-    MUL_ASSIGN = 270,
-    DIV_ASSIGN = 271,
-    MOD_ASSIGN = 272,
-    ADD_ASSIGN = 273,
-    SUB_ASSIGN = 274,
-    INCREMENT = 275,
-    DECREMENT = 276,
-    SHORT = 277,
-    INT = 278,
-    LONG = 279,
-    LONG_LONG = 280,
-    SIGNED = 281,
-    UNSIGNED = 282,
-    CONST = 283,
-    VOID = 284,
-    CHAR = 285,
-    FLOAT = 286,
-    IF = 287,
-    FOR = 288,
-    WHILE = 289,
-    CONTINUE = 290,
-    BREAK = 291,
-    RETURN = 292,
-    UMINUS = 293,
-    LOWER_THAN_ELSE = 294,
-    ELSE = 295
+    FLOAT_CONSTANT = 261,
+    STRING = 262,
+    LOGICAL_AND = 263,
+    LOGICAL_OR = 264,
+    LS_EQ = 265,
+    GR_EQ = 266,
+    EQ = 267,
+    NOT_EQ = 268,
+    MUL_ASSIGN = 269,
+    DIV_ASSIGN = 270,
+    MOD_ASSIGN = 271,
+    ADD_ASSIGN = 272,
+    SUB_ASSIGN = 273,
+    LEFT_ASSIGN = 274,
+    RIGHT_ASSIGN = 275,
+    AND_ASSIGN = 276,
+    XOR_ASSIGN = 277,
+    OR_ASSIGN = 278,
+    INCREMENT = 279,
+    DECREMENT = 280,
+    SHORT = 281,
+    INT = 282,
+    LONG = 283,
+    LONG_LONG = 284,
+    SIGNED = 285,
+    UNSIGNED = 286,
+    CONST = 287,
+    VOID = 288,
+    CHAR = 289,
+    FLOAT = 290,
+    IF = 291,
+    FOR = 292,
+    WHILE = 293,
+    CONTINUE = 294,
+    BREAK = 295,
+    RETURN = 296,
+    CIN = 297,
+    COUT = 298,
+    INPUT = 299,
+    OUTPUT = 300,
+    UMINUS = 301,
+    ELSEIF = 302,
+    ELSE = 303
   };
 #endif
 /* Tokens.  */
 #define IDENTIFIER 258
 #define DEC_CONSTANT 259
 #define HEX_CONSTANT 260
-#define CHAR_CONSTANT 261
-#define FLOAT_CONSTANT 262
-#define STRING 263
-#define LOGICAL_AND 264
-#define LOGICAL_OR 265
-#define LS_EQ 266
-#define GR_EQ 267
-#define EQ 268
-#define NOT_EQ 269
-#define MUL_ASSIGN 270
-#define DIV_ASSIGN 271
-#define MOD_ASSIGN 272
-#define ADD_ASSIGN 273
-#define SUB_ASSIGN 274
-#define INCREMENT 275
-#define DECREMENT 276
-#define SHORT 277
-#define INT 278
-#define LONG 279
-#define LONG_LONG 280
-#define SIGNED 281
-#define UNSIGNED 282
-#define CONST 283
-#define VOID 284
-#define CHAR 285
-#define FLOAT 286
-#define IF 287
-#define FOR 288
-#define WHILE 289
-#define CONTINUE 290
-#define BREAK 291
-#define RETURN 292
-#define UMINUS 293
-#define LOWER_THAN_ELSE 294
-#define ELSE 295
+#define FLOAT_CONSTANT 261
+#define STRING 262
+#define LOGICAL_AND 263
+#define LOGICAL_OR 264
+#define LS_EQ 265
+#define GR_EQ 266
+#define EQ 267
+#define NOT_EQ 268
+#define MUL_ASSIGN 269
+#define DIV_ASSIGN 270
+#define MOD_ASSIGN 271
+#define ADD_ASSIGN 272
+#define SUB_ASSIGN 273
+#define LEFT_ASSIGN 274
+#define RIGHT_ASSIGN 275
+#define AND_ASSIGN 276
+#define XOR_ASSIGN 277
+#define OR_ASSIGN 278
+#define INCREMENT 279
+#define DECREMENT 280
+#define SHORT 281
+#define INT 282
+#define LONG 283
+#define LONG_LONG 284
+#define SIGNED 285
+#define UNSIGNED 286
+#define CONST 287
+#define VOID 288
+#define CHAR 289
+#define FLOAT 290
+#define IF 291
+#define FOR 292
+#define WHILE 293
+#define CONTINUE 294
+#define BREAK 295
+#define RETURN 296
+#define CIN 297
+#define COUT 298
+#define INPUT 299
+#define OUTPUT 300
+#define UMINUS 301
+#define ELSEIF 302
+#define ELSE 303
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 23 "yacc.y"
+#line 22 "yacc.y"
 
-	int data_type;
+	double dval;
 	symbolTableEntry* entry;
+	int ival;
 
-#line 142 "y.tab.h"
+#line 159 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
