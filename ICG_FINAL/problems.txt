@@ -1,0 +1,20 @@
+1) int a;
+   int b = a; 
+Above doesnt work as it says redeclaration of a. Because of the way the grammar is written. Very difficult to change
+2) cin, cout 
+no ICG generated for it. Dont know what to do for it so left it
+
+3) for(int i=0;i<10;i++)
+Doesnt work as grammar for FOR doesnt allow declaration of variables. It should, but very very difficult to change
+so 
+int i;
+for(i=0;i<10;i++)
+This will work
+
+4) return 
+Doesnt work. No clue why
+
+5)
+if(a)
+doesnt work. No grammar for it
+if(a>10) or any other expression works

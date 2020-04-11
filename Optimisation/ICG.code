@@ -1,0 +1,20 @@
+0: main:
+1: t0 = 6 + 2
+2: a = t0
+3: sum = 0
+4: i = 0
+5: t1 = i < 10
+6: if t1 goto 12
+7: goto 15
+8: t2 = i
+9: t3 = i + 1
+10: i = t3
+11: goto 5
+12: t4 = sum + b
+13: sum = t4
+14: goto 8
+15: t5 = d * e
+16: a = t5
+17: t6 = d * e
+18: b = t6
+19: exit

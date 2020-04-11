@@ -1,0 +1,4 @@
+lex lex.l
+yacc -d yacc.y -v
+g++ -std=c++11 -g y.tab.c -ly -ll -o icg
+./icg test.cpp
